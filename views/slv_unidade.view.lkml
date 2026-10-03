@@ -1,19 +1,24 @@
 
 view: slv_unidade {
   derived_table: {
-    sql: {% raw %} SELECT
-          u.cd_unidade,
-          TRIM(u.nm_unidade) AS nm_unidade,
-          TRIM(u.ds_polo) AS ds_polo,
-          UPPER(TRIM(u.sg_uf)) AS sg_uf,
-          TRIM(u.nm_municipio) AS nm_municipio,
-          TRIM(u.ds_fuso_horario) AS ds_fuso_horario,
-          u.qt_capacidade_moagem_t_dia,
-          d.centro_sap,
-          d.descricao AS descricao_centro_sap
-      FROM `analytics-looker-interno.agro_bronze.pims_cad_unidade` AS u
-      LEFT JOIN `analytics-looker-interno.agro_bronze.sap_de_para_centro` AS d
-          ON u.cd_unidade = d.cd_unidade {% endraw %} ;;
+    sql: {% raw %} SELECT 
+          pcu.cd_unidade,
+          pcu.nm_unidade,
+          pcu.ds_polo,
+          pcu.sg_uf,
+          pcu.nm_municipio,
+          pcu.ds_fuso_horario,
+          pcu.qt_capacidade_moagem_t_dia,
+          sap.centro_sap,
+          wdu.codigo_regional,
+          wdu.regional
+      FROM `analytics-looker-interno.agro_bronze.pims_cad_unidade` pcu
+      LEFT JOIN `analytics-looker-interno.agro_bronze.sap_de_para_centro` sap 
+          ON pcu.cd_unidade = sap.cd_unidade
+      LEFT JOIN `analytics-looker-interno.agro_bronze.ws_di_unidade` wdu 
+          ON pcu.cd_unidade = wdu.sigla_unidade
+      LEFT JOIN `analytics-looker-interno.agro_bronze.pims_di_unidade` pdu 
+          ON pcu.cd_unidade = pdu.sigla_unidade {% endraw %} ;;
   }
 
   measure: count {
@@ -61,9 +66,14 @@ view: slv_unidade {
     sql: ${TABLE}.centro_sap ;;
   }
 
-  dimension: descricao_centro_sap {
+  dimension: codigo_regional {
+    type: number
+    sql: ${TABLE}.codigo_regional ;;
+  }
+
+  dimension: regional {
     type: string
-    sql: ${TABLE}.descricao_centro_sap ;;
+    sql: ${TABLE}.regional ;;
   }
 
   set: detail {
@@ -76,7 +86,8 @@ view: slv_unidade {
 	ds_fuso_horario,
 	qt_capacidade_moagem_t_dia,
 	centro_sap,
-	descricao_centro_sap
+	codigo_regional,
+	regional
     ]
   }
 }
