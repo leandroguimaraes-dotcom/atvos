@@ -3,6 +3,7 @@ connection: "bq_verdana"
 
 # include all the views
 include: "/views/**/*.view.lkml"
+include: "/**/*.explore.lkml"
 
 # Datagroups define a caching policy for an Explore. To learn more,
 # use the Quick Help panel on the right to see documentation.
@@ -13,4 +14,3 @@ datagroup: Atvos_leandro_default_datagroup {
 }
 
 persist_with: Atvos_leandro_default_datagroup
-
