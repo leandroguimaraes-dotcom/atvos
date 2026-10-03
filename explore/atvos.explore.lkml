@@ -1,6 +1,7 @@
 include: "/views/slv_unidade.view.lkml"
 include: "/views/slv_talhao.view.lkml"
 include: "/views/slv_equipamento.view.lkml"
+include: "/views/slv_entrada_cana.view.lkml"
 
 
 explore: slv_unidade {
@@ -12,7 +13,9 @@ explore: slv_talhao {
 explore: slv_equipamento {
   # required_access_grants: [can_see_project]
 }
-
+explore: slv_entrada_cana {
+  # required_access_grants: [can_see_project]
+}
 # include: "/views/slv_unidade.view.lkml"
 # include: "/views/slv_talhao.view.lkml"
 
