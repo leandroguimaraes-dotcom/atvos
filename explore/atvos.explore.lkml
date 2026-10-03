@@ -4,7 +4,7 @@ include: "/views/slv_equipamento.view.lkml"
 include: "/views/slv_entrada_cana.view.lkml"
 include: "/views/slv_lab_ctt.view.lkml"
 include: "/views/slv_apont_colheita.view.lkml"
-
+include: "/views/slv_eventos_telemetria.view.lkml"
 
 explore: slv_unidade {
   # required_access_grants: [can_see_project]
@@ -22,6 +22,9 @@ explore: slv_lab_ctt {
   # required_access_grants: [can_see_project]
 }
 explore: slv_apont_colheita {
+  # required_access_grants: [can_see_project]
+}
+explore: slv_eventos_telemetria {
   # required_access_grants: [can_see_project]
 }
 # include: "/views/slv_unidade.view.lkml"
