@@ -1,7 +1,7 @@
 
 view: slv_unidade {
   derived_table: {
-    sql: {% raw %} SELECT 
+    sql: {% raw %} SELECT
           pcu.cd_unidade,
           pcu.nm_unidade,
           pcu.ds_polo,
@@ -13,11 +13,11 @@ view: slv_unidade {
           wdu.codigo_regional,
           wdu.regional
       FROM `analytics-looker-interno.agro_bronze.pims_cad_unidade` pcu
-      LEFT JOIN `analytics-looker-interno.agro_bronze.sap_de_para_centro` sap 
+      LEFT JOIN `analytics-looker-interno.agro_bronze.sap_de_para_centro` sap
           ON pcu.cd_unidade = sap.cd_unidade
-      LEFT JOIN `analytics-looker-interno.agro_bronze.ws_di_unidade` wdu 
+      LEFT JOIN `analytics-looker-interno.agro_bronze.ws_di_unidade` wdu
           ON pcu.cd_unidade = wdu.sigla_unidade
-      LEFT JOIN `analytics-looker-interno.agro_bronze.pims_di_unidade` pdu 
+      LEFT JOIN `analytics-looker-interno.agro_bronze.pims_di_unidade` pdu
           ON pcu.cd_unidade = pdu.sigla_unidade {% endraw %} ;;
   }
 
@@ -28,6 +28,7 @@ view: slv_unidade {
 
   dimension: cd_unidade {
     type: string
+    primary_key: yes
     sql: ${TABLE}.cd_unidade ;;
   }
 
@@ -79,15 +80,15 @@ view: slv_unidade {
   set: detail {
     fields: [
         cd_unidade,
-	nm_unidade,
-	ds_polo,
-	sg_uf,
-	nm_municipio,
-	ds_fuso_horario,
-	qt_capacidade_moagem_t_dia,
-	centro_sap,
-	codigo_regional,
-	regional
+  nm_unidade,
+  ds_polo,
+  sg_uf,
+  nm_municipio,
+  ds_fuso_horario,
+  qt_capacidade_moagem_t_dia,
+  centro_sap,
+  codigo_regional,
+  regional
     ]
   }
 }
