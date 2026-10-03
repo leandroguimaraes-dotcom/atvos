@@ -1,4 +1,3 @@
-
 view: slv_eventos_telemetria {
   derived_table: {
     sql: {% raw %} WITH deduplicado AS (
@@ -17,7 +16,7 @@ view: slv_eventos_telemetria {
       ),
       fuso_horario_equipamento AS (
           -- Busca o fuso horário da unidade vinculada ao equipamento para a conversão de UTC
-          SELECT 
+          SELECT
               CAST(e.equnr AS INT64) AS cd_equipamento,
               pcu.ds_fuso_horario
           FROM `analytics-looker-interno.agro_bronze.sap_equipamento` e
@@ -26,34 +25,43 @@ view: slv_eventos_telemetria {
           LEFT JOIN `analytics-looker-interno.agro_bronze.pims_cad_unidade` pcu
               ON sap.cd_unidade = pcu.cd_unidade
       )
-      
-      SELECT 
+
+      SELECT
           a.id_evento,
-          
-          -- 1. ID do equipamento: Extrai apenas os números (ex: 10007) e converte para inteiro
+
+          -- 1. ID do equipamento: Extrai apenas os números e converte para inteiro
           CAST(REGEXP_EXTRACT(a.id_equipamento, r'\d+') AS INT64) AS cd_equipamento,
-          
-          -- 2. Estado normalizado: Remoção de espaços e conversão para maiúsculas
+
+          -- 2. Estado normalizado
           TRIM(UPPER(a.ds_estado)) AS ds_estado,
-          
-          -- 3. UTC -> Horário local: Utiliza o fuso horário cadastrado para a unidade do equipamento
-          DATETIME(TIMESTAMP(a.dt_hr_inicio_utc), COALESCE(fuso.ds_fuso_horario, 'America/Sao_Paulo')) AS dt_hr_inicio_local,
-          DATETIME(TIMESTAMP(a.dt_hr_fim_utc), COALESCE(fuso.ds_fuso_horario, 'America/Sao_Paulo')) AS dt_hr_fim_local,
-          
-          -- Manutenção dos campos originais UTC para rastreabilidade
-          a.dt_hr_inicio_utc,
-          a.dt_hr_fim_utc,
-          
-          -- 4. Campos do JSON: Extração com JSON_VALUE e conversão de tipos
-          CAST(JSON_VALUE(a.payload, '$.velocidade') AS FLOAT64) AS velocidade_kmh,
-          CAST(JSON_VALUE(a.payload, '$.rpm') AS INT64) AS rpm_motor,
-          CAST(JSON_VALUE(a.payload, '$.consumo') AS FLOAT64) AS consumo_litros,
-          JSON_VALUE(a.payload, '$.operador') AS cd_operador
-      
+
+      -- NOVO: Agrupamento de estados da telemetria
+      CASE
+      WHEN TRIM(UPPER(a.ds_estado)) = 'EFETIVO' THEN 'PRODUTIVO'
+      WHEN TRIM(UPPER(a.ds_estado)) IN ('DESLOCAMENTO', 'MANOBRA') THEN 'AUXILIAR'
+      WHEN TRIM(UPPER(a.ds_estado)) IN ('MANUTENCAO CORRETIVA', 'MANUTENCAO PREVENTIVA') THEN 'MANUTENCAO'
+      WHEN TRIM(UPPER(a.ds_estado)) = 'CHUVA' THEN 'CLIMA'
+      WHEN TRIM(UPPER(a.ds_estado)) IN ('AGUARDANDO TRANSBORDO', 'REFEICAO', 'FALTA OPERADOR', 'SEM APONTAMENTO') THEN 'IMPRODUTIVO OPERACIONAL'
+      ELSE 'OUTROS'
+      END AS grupo_estado,
+
+      -- 3. UTC -> Horário local
+      DATETIME(TIMESTAMP(a.dt_hr_inicio_utc), COALESCE(fuso.ds_fuso_horario, 'America/Sao_Paulo')) AS dt_hr_inicio_local,
+      DATETIME(TIMESTAMP(a.dt_hr_fim_utc), COALESCE(fuso.ds_fuso_horario, 'America/Sao_Paulo')) AS dt_hr_fim_local,
+
+      -- Manutenção dos campos originais UTC
+      a.dt_hr_inicio_utc,
+      a.dt_hr_fim_utc,
+
+      -- 4. Campos do JSON
+      CAST(JSON_VALUE(a.payload, '$.velocidade') AS FLOAT64) AS velocidade_kmh,
+      CAST(JSON_VALUE(a.payload, '$.rpm') AS INT64) AS rpm_motor,
+      CAST(JSON_VALUE(a.payload, '$.consumo') AS FLOAT64) AS consumo_litros,
+      JSON_VALUE(a.payload, '$.operador') AS cd_operador
+
       FROM deduplicado a
-      LEFT JOIN fuso_horario_equipamento fuso 
-          -- Aplica a mesma extração numérica na condição de JOIN para encontrar a unidade correta
-          ON CAST(REGEXP_EXTRACT(a.id_equipamento, r'\d+') AS INT64) = fuso.cd_equipamento {% endraw %} ;;
+      LEFT JOIN fuso_horario_equipamento fuso
+      ON CAST(REGEXP_EXTRACT(a.id_equipamento, r'\d+') AS INT64) = fuso.cd_equipamento {% endraw %} ;;
   }
 
   measure: count {
@@ -74,6 +82,13 @@ view: slv_eventos_telemetria {
   dimension: ds_estado {
     type: string
     sql: ${TABLE}.ds_estado ;;
+  }
+
+  # NOVA DIMENSÃO ADICIONADA AQUI
+  dimension: grupo_estado {
+    type: string
+    description: "Agrupamento Macro dos Estados da Telemetria (Produtivo, Auxiliar, etc.)"
+    sql: ${TABLE}.grupo_estado ;;
   }
 
   dimension_group: dt_hr_inicio_local {
@@ -120,17 +135,18 @@ view: slv_eventos_telemetria {
 
   set: detail {
     fields: [
-        id_evento,
-	cd_equipamento,
-	ds_estado,
-	dt_hr_inicio_local_time,
-	dt_hr_fim_local_time,
-	dt_hr_inicio_utc_time,
-	dt_hr_fim_utc_time,
-	velocidade_kmh,
-	rpm_motor,
-	consumo_litros,
-	cd_operador
+      id_evento,
+      cd_equipamento,
+      ds_estado,
+      grupo_estado, # ADICIONADO AO SET DE DETALHES
+      dt_hr_inicio_local_time,
+      dt_hr_fim_local_time,
+      dt_hr_inicio_utc_time,
+      dt_hr_fim_utc_time,
+      velocidade_kmh,
+      rpm_motor,
+      consumo_litros,
+      cd_operador
     ]
   }
 }
