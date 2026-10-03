@@ -6,6 +6,7 @@ include: "/views/slv_lab_ctt.view.lkml"
 include: "/views/slv_apont_colheita.view.lkml"
 include: "/views/slv_eventos_telemetria.view.lkml"
 include: "/views/slv_ordem_manutencao.view.lkml"
+include: "/views/slv_abastecimento.view.lkml"
 
 
 explore: slv_unidade {
@@ -30,6 +31,9 @@ explore: slv_eventos_telemetria {
   # required_access_grants: [can_see_project]
 }
 explore: slv_ordem_manutencao {
+  # required_access_grants: [can_see_project]
+}
+explore: slv_abastecimento {
   # required_access_grants: [can_see_project]
 }
 # include: "/views/slv_unidade.view.lkml"
