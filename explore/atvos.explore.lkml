@@ -8,6 +8,8 @@ include: "/views/slv_eventos_telemetria.view.lkml"
 include: "/views/slv_ordem_manutencao.view.lkml"
 include: "/views/slv_abastecimento.view.lkml"
 include: "/views/slv_meta_safra.view.lkml"
+include: "/views/slv_prod_industrial.view.lkml"
+
 
 explore: slv_unidade {
   # required_access_grants: [can_see_project]
@@ -37,6 +39,9 @@ explore: slv_abastecimento {
   # required_access_grants: [can_see_project]
 }
 explore: slv_meta_safra {
+  # required_access_grants: [can_see_project]
+}
+explore: slv_prod_industrial {
   # required_access_grants: [can_see_project]
 }
 # include: "/views/slv_unidade.view.lkml"
